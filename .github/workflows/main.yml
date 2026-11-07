@@ -1,0 +1,40 @@
+name: Build VirtualApp
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Unzip VirtualApp
+        run: unzip VirtualApp-main.zip
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Install NDK
+        run: echo "y" | sdkmanager "ndk;21.4.7075529"
+
+      - name: Build
+        working-directory: VirtualApp-main
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: VirtualApp-APK
+          path: VirtualApp-main/app/build/outputs/apk/debug/*.apk
